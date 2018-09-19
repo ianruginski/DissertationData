@@ -292,11 +292,12 @@ traitdata$ATOTnopleasure <- (rowSums(select(traitdata,c(ATOT3:ATOT4), c(ATOT7:AT
 traitdata.sub <- select(traitdata, -c(LO1:ATOT10), -c(US.1_1:US.1_50), -(Utah.1_1:Utah.1_41), -c(rnum), -c(Utahdist.1:Utahdist.41), -c(SB2r:SB13r), -c(BF2r:BF10r), -c(SOI6r))
 
 
-require(plyr)
+require(dplyr)
 rawdata.sub <- select(rawdata, id, c(Q1:Q3), c(Q4:Q73), -c(text3), -c(text4), -c(text5))
 final <- merge(traitdata.sub, rawdata.sub, by='id')
 
 final <- final[-2,] #take out person who is all missing
+require(plyr)
 final$id <- revalue(final$id, c("UT_140"="Utah_140", "utah140"="Utah_141",
                                                 "UT_143"="Utah_143", "UT142" = "Utah_142"))
 expdata.sub <- expdata
@@ -307,13 +308,21 @@ expdata.sub$id <- revalue(expdata.sub$id, c("u1075688"="Utah_302", "UT_168"="Uta
                                             "utah_155"="Utah_155", "UTah_137" = "Utah_137")) #fix these ID's
 
 expdata.sub <- rbind(expdata.sub, c("Utah_182", rep(NA, 10))) #add missing data for p182.
-colnames(expdata.sub) <- c("id", "Map", "WithinRtPt", "BetweenRtPt", "WithinRtPtAllo", "BetweenRtPtAllo", "WithinDist", "BetweenDist", "date", "MRT", "PSAS")
+colnames(expdata.sub) <- c("id", "Map", "WithinRtPt", "BetweenRtPt", "WithinRtPtAllo", "BetweenRtPtAllo", "WithinDist", "BetweenDist", "MRT", "PSAS")
 
 finalclean <- merge(final, expdata.sub, by='id')
-finalclean <- finalclean[-183,] #take out the artifact participant from SILCTON (same person, has missing for some vars)
+finalclean <- finalclean[-184,] #take out the artifact participant from SILCTON (same person, has missing for some vars)
 
 write.csv(finalclean, "ian_diss_cleaneddata.csv")
 
 #Remainder of cleaning and analysis in Diss_Analysis.R
 
+#extra map data things for bidimreg...
+require(plyr) #first make sure to run script above! to fix a few other names.
+map$participant <- revalue(map$participant, c("u1075688"="Utah_302", "UT_168"="Utah_168",
+                                            "UT_143"="Utah_143", "Utah140" = "Utah_140",
+                                            "UT_141" = "Utah_141", "Utah_2256" = "Utah_256",
+                                            "utah_155"="Utah_155", "UTah_137" = "Utah_137")) 
 
+#save out raw map file for use with bidimreg macro.
+write.csv(map, "mapdataforbidim.csv")
